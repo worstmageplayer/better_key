@@ -73,8 +73,8 @@ pub fn init_worker() -> Result<(), WorkerInitError> {
             }
         }
     }) {
-    Ok(_) => Ok(()),
-    Err(_) => Err(WorkerInitError::ThreadFail),
+        Ok(_) => Ok(()),
+        Err(_) => Err(WorkerInitError::ThreadFail),
     }
 }
 
