@@ -65,15 +65,15 @@ pub fn init_worker() -> Result<(), WorkerInitError> {
 
     if thread::Builder::new()
         .name("key-action-thread".into())
-            .spawn(move || {
-                for action in rx {
-                    match action {
-                        KeyAction::KeyHandler(is_down) => key_handler(is_down),
-                        KeyAction::CtrlHandler(vk) => ctrl_handler(vk),
-                    }
+        .spawn(move || {
+            for action in rx {
+                match action {
+                    KeyAction::KeyHandler(is_down) => key_handler(is_down),
+                    KeyAction::CtrlHandler(vk) => ctrl_handler(vk),
                 }
-            })
-    .is_err() {
+            }
+        })
+        .is_err() {
         return Err(WorkerInitError::ThreadFailed)
     }
 
