@@ -6,9 +6,14 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     KEYBDINPUT,
     KEYBD_EVENT_FLAGS,
     KEYEVENTF_KEYUP,
-    VK_LCONTROL,
     VK_ESCAPE,
     VIRTUAL_KEY,
+    VK_SHIFT,
+    VK_LSHIFT,
+    VK_RSHIFT,
+    VK_CONTROL,
+    VK_LCONTROL,
+    VK_RCONTROL,
 };
 use std::{
     sync::atomic::{AtomicBool, Ordering::SeqCst},
@@ -35,7 +40,14 @@ pub fn key_handler(is_key_down: bool) {
 
 pub fn ctrl_handler(vk_code: u32) {
     OTHER_KEY_PRESSED.store(true, SeqCst);
-    if let Err(e) = send_ctrl(vk_code) {
+    let virtual_key = VIRTUAL_KEY(vk_code as u16);
+
+    match virtual_key {
+        VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_CONTROL | VK_LCONTROL | VK_RCONTROL => return,
+        _ => {}
+    }
+
+    if let Err(e) = send_ctrl(virtual_key) {
         eprintln!("{e}");
     }
 }
@@ -79,7 +91,7 @@ pub fn send_esc() -> Result<(), InputError> {
     Ok(())
 }
 
-pub fn send_ctrl(vk_code: u32) -> Result<(), InputError> {
+pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
     let inputs = &[
         INPUT {
             r#type: INPUT_KEYBOARD,
@@ -97,7 +109,7 @@ pub fn send_ctrl(vk_code: u32) -> Result<(), InputError> {
             r#type: INPUT_KEYBOARD,
             Anonymous: INPUT_0 {
                 ki: KEYBDINPUT {
-                    wVk: VIRTUAL_KEY(vk_code as u16),
+                    wVk: virtual_key,
                     wScan: 0,
                     dwFlags: KEYBD_EVENT_FLAGS(0),
                     time: 0,
@@ -109,7 +121,7 @@ pub fn send_ctrl(vk_code: u32) -> Result<(), InputError> {
             r#type: INPUT_KEYBOARD,
             Anonymous: INPUT_0 {
                 ki: KEYBDINPUT {
-                    wVk: VIRTUAL_KEY(vk_code as u16),
+                    wVk: virtual_key,
                     wScan: 0,
                     dwFlags: KEYEVENTF_KEYUP,
                     time: 0,

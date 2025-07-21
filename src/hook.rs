@@ -54,30 +54,28 @@ enum KeyAction {
 }
 
 static HOOK: AtomicPtr<c_void> = AtomicPtr::new(null_mut());
+
 static SENDER: OnceLock<Sender<KeyAction>> = OnceLock::new();
 
 pub fn init_worker() -> Result<(), WorkerInitError> {
-    let (tx, rx) = channel::<KeyAction>();
+    let (sender, receiver) = channel::<KeyAction>();
 
-    if SENDER.set(tx).is_err() {
+    if SENDER.set(sender).is_err() {
         return Err(WorkerInitError::SenderAlreadySet);
     }
 
-    if thread::Builder::new()
-        .name("key-action-thread".into())
-        .spawn(move || {
-            for action in rx {
-                match action {
-                    KeyAction::KeyHandler(is_down) => key_handler(is_down),
-                    KeyAction::CtrlHandler(vk) => ctrl_handler(vk),
-                }
+    let thread = thread::Builder::new().name("key-action-thread".to_string());
+    match thread.spawn(move || {
+        for action in receiver {
+            match action {
+                KeyAction::KeyHandler(is_down) => key_handler(is_down),
+                KeyAction::CtrlHandler(vk) => ctrl_handler(vk),
             }
-        })
-        .is_err() {
-        return Err(WorkerInitError::ThreadFailed)
+        }
+    }) {
+    Ok(_) => Ok(()),
+    Err(_) => Err(WorkerInitError::ThreadFail),
     }
-
-    Ok(())
 }
 
 #[unsafe(no_mangle)]

@@ -1,6 +1,9 @@
 [package]
 name = "better_key"
-version = "0.1.0"
+version = "0.1.1"
+repository = "https://github.com/worstmageplayer/better_key"
+readme = "README.md"
+license = "MIT"
 edition = "2024"
 
 [dependencies]

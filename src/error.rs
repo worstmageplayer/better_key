@@ -28,7 +28,16 @@ impl fmt::Display for InputError {
 #[derive(Debug)]
 pub enum WorkerInitError {
     SenderAlreadySet,
-    ThreadFailed,
+    ThreadFail,
+}
+
+impl fmt::Display for WorkerInitError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WorkerInitError::SenderAlreadySet => write!(f, "Sender already initialized"),
+            WorkerInitError::ThreadFail => write!(f, "Thread Failed"),
+        }
+    }
 }
 
 #[derive(Debug)]

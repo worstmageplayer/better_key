@@ -5,10 +5,9 @@ mod key;
 mod error;
 mod hook;
 
-
 fn main() {
     if let Err(e) = init_worker() {
-        eprintln!("Failed to initialize worker: {e:?}");
+        eprintln!("Failed to initialize worker: {e}");
         return;
     }
 
