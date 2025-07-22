@@ -8,12 +8,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     KEYEVENTF_KEYUP,
     VK_ESCAPE,
     VIRTUAL_KEY,
-    VK_SHIFT,
-    VK_LSHIFT,
-    VK_RSHIFT,
-    VK_CONTROL,
     VK_LCONTROL,
-    VK_RCONTROL,
 };
 use std::{
     sync::atomic::{AtomicBool, Ordering::SeqCst},
@@ -38,16 +33,12 @@ pub fn key_handler(is_key_down: bool) {
     }
 }
 
-pub fn ctrl_handler(vk_code: u32) {
+pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
+    if !is_key_event_down { return }
+
     OTHER_KEY_PRESSED.store(true, SeqCst);
-    let virtual_key = VIRTUAL_KEY(vk_code as u16);
 
-    match virtual_key {
-        VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_CONTROL | VK_LCONTROL | VK_RCONTROL => return,
-        _ => {}
-    }
-
-    if let Err(e) = send_ctrl(virtual_key) {
+    if let Err(e) = send_ctrl(VIRTUAL_KEY(vk_code as u16)) {
         eprintln!("{e}");
     }
 }

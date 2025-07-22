@@ -20,6 +20,15 @@ use windows::{
                 WM_KEYUP,
                 WM_SYSKEYUP,
                 MSG,
+            },
+            Input::KeyboardAndMouse::{
+                VIRTUAL_KEY,
+                VK_SHIFT,
+                VK_LSHIFT,
+                VK_RSHIFT,
+                VK_MENU,
+                VK_LMENU,
+                VK_RMENU,
             }
         }
     }
@@ -50,7 +59,7 @@ use crate::error::{HookError, WorkerInitError};
 
 enum KeyAction {
     KeyHandler(bool),
-    CtrlHandler(u32),
+    CtrlHandler(u32, bool),
 }
 
 static HOOK: AtomicPtr<c_void> = AtomicPtr::new(null_mut());
@@ -69,7 +78,7 @@ pub fn init_worker() -> Result<(), WorkerInitError> {
         for action in receiver {
             match action {
                 KeyAction::KeyHandler(is_down) => key_handler(is_down),
-                KeyAction::CtrlHandler(vk) => ctrl_handler(vk),
+                KeyAction::CtrlHandler(vk, is_key_event_down) => ctrl_handler(vk, is_key_event_down),
             }
         }
     }) {
@@ -104,9 +113,16 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return LRESULT(1);
     }
 
-    if KEY_STATE.load(SeqCst) && is_key_event_down {
+    match VIRTUAL_KEY(vk_code as u16) {
+        VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_MENU | VK_LMENU | VK_RMENU => {
+            return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
+        },
+        _ => {}
+    }
+
+    if KEY_STATE.load(SeqCst) {
         if let Some(sender) = SENDER.get() {
-            let _ = sender.send(KeyAction::CtrlHandler(vk_code));
+            let _ = sender.send(KeyAction::CtrlHandler(vk_code, is_key_event_down));
         };
         return LRESULT(1);
     }
