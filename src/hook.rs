@@ -49,13 +49,18 @@ use std::{
     ffi::c_void,
     ptr::null_mut,
 };
-use crate::key::{
-    KEY,
-    KEY_STATE,
-    ctrl_handler,
-    key_handler,
+use crate::{
+    key::{
+        KEY,
+        KEY_STATE,
+        ctrl_handler,
+        key_handler,
+    },
+    error::{
+        HookError,
+        WorkerInitError,
+    }
 };
-use crate::error::{HookError, WorkerInitError};
 
 enum KeyAction {
     KeyHandler(bool),

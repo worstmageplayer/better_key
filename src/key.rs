@@ -15,7 +15,6 @@ use std::{
     mem::size_of,
 };
 use crate::error::InputError;
-use InputError::{SendCtrlFail, SendEscFail};
 
 pub const KEY: u32 = 124; // f13
 pub static KEY_STATE: AtomicBool = AtomicBool::new(false);
@@ -74,7 +73,7 @@ const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
 pub fn send_esc() -> Result<(), InputError> {
     let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
     if sent != ESC_INPUTS_LEN {
-        return Err(SendEscFail {
+        return Err(InputError::SendEscFail {
             sent,
             expected: ESC_INPUTS_LEN
         });
@@ -135,7 +134,7 @@ pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
     ];
     let sent = unsafe { SendInput(inputs, INPUT_SIZE) };
     if sent != inputs.len() as u32 {
-        return Err(SendCtrlFail {
+        return Err(InputError::SendCtrlFail {
             sent,
             expected: inputs.len() as u32
         });
