@@ -33,6 +33,7 @@ pub fn key_handler(is_key_down: bool) {
 }
 
 pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
+    // Ignore key releases
     if !is_key_event_down { return }
 
     OTHER_KEY_PRESSED.store(true, SeqCst);

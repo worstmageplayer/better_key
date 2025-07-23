@@ -98,12 +98,15 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
     }
 
+    // l_param is a pointer to a KBDLLHOOKSTRUCT struct
     let kb = unsafe { &*(l_param.0 as *const KBDLLHOOKSTRUCT) };
     if kb.flags.contains(LLKHF_INJECTED) {
         return unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
     }
 
     let vk_code = kb.vkCode;
+    // w_param is the type of event
+    // Lets you check if it is a key press or release
     let is_key_event_down = match w_param.0 as u32 {
         WM_KEYDOWN | WM_SYSKEYDOWN => true,
         WM_KEYUP | WM_SYSKEYUP => false,
@@ -118,6 +121,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return LRESULT(1);
     }
 
+    // Ignore shift and alt keys
     match VIRTUAL_KEY(vk_code as u16) {
         VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_MENU | VK_LMENU | VK_RMENU => {
             return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
@@ -125,6 +129,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         _ => {}
     }
 
+    // When f13 key is held, send all key presses to ctrl_handler
     if KEY_STATE.load(SeqCst) {
         if let Some(sender) = SENDER.get() {
             let _ = sender.send(KeyAction::CtrlHandler(vk_code, is_key_event_down));
@@ -137,16 +142,20 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 
 pub fn start_hook() -> Result<(), HookError> {
     {
+        // This thread installs the hook
         let hook = match unsafe { SetWindowsHookExA(WH_KEYBOARD_LL, Some(hook_proc), None, 0) } {
             Ok(result) => result,
             Err(e) => {
                 return Err(HookError::StartHookFail(e));
             },
         };
+        // Store it for no reason
         HOOK.store(hook.0, SeqCst);
     }
 
     let mut msg = MSG::default();
+    // Loop to keep the thread alive
+    // Windows sends hook events to the thread that installed the hook
     while unsafe { GetMessageA(&mut msg, None, 0, 0).0 } > 0 {
         unsafe {
             let _ = TranslateMessage(&msg);
