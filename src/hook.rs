@@ -36,7 +36,6 @@ use windows::{
 use std::{
     sync::{
         atomic::{
-            AtomicPtr,
             Ordering::SeqCst,
         },
         mpsc::{
@@ -46,8 +45,6 @@ use std::{
         OnceLock,
     },
     thread,
-    ffi::c_void,
-    ptr::null_mut,
 };
 use crate::{
     key::{

@@ -43,7 +43,7 @@ pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
     }
 }
 
-const ESC_INPUTS: [INPUT; 2] = [
+static ESC_INPUTS: [INPUT; 2] = [
     INPUT {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {
