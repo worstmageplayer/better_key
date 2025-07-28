@@ -67,8 +67,6 @@ enum KeyAction {
     CtrlHandler(u32, bool),
 }
 
-static HOOK: AtomicPtr<c_void> = AtomicPtr::new(null_mut());
-
 static SENDER: OnceLock<Sender<KeyAction>> = OnceLock::new();
 
 pub fn init_worker() -> Result<(), WorkerInitError> {
