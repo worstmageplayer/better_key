@@ -93,7 +93,6 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     // l_param is a pointer to a KBDLLHOOKSTRUCT struct
     let kb = unsafe { &*(l_param.0 as *const KBDLLHOOKSTRUCT) };
 
-    // Skip injected events
     if kb.flags.contains(LLKHF_INJECTED) {
         return unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
     }
