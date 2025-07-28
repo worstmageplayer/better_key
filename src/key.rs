@@ -11,7 +11,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     VK_LCONTROL,
 };
 use std::{
-    sync::atomic::{AtomicBool, Ordering::SeqCst},
+    sync::atomic::{AtomicBool, Ordering::Relaxed},
     mem::size_of,
 };
 use crate::error::InputError;
@@ -23,20 +23,22 @@ static OTHER_KEY_PRESSED: AtomicBool = AtomicBool::new(false);
 
 const INPUT_SIZE: i32 = size_of::<INPUT>() as i32;
 
+#[inline]
 pub fn key_handler(is_key_down: bool) {
     if is_key_down {
-        OTHER_KEY_PRESSED.store(false, SeqCst);
-    } else if !OTHER_KEY_PRESSED.load(SeqCst)
+        OTHER_KEY_PRESSED.store(false, Relaxed);
+    } else if !OTHER_KEY_PRESSED.load(Relaxed)
         && let Err(e) = send_esc() {
         eprintln!("{e}");
     }
 }
 
+#[inline]
 pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
     // Ignore key releases
     if !is_key_event_down { return }
 
-    OTHER_KEY_PRESSED.store(true, SeqCst);
+    OTHER_KEY_PRESSED.store(true, Relaxed);
 
     if let Err(e) = send_ctrl(VIRTUAL_KEY(vk_code as u16)) {
         eprintln!("{e}");
@@ -71,6 +73,7 @@ static ESC_INPUTS: [INPUT; 2] = [
 ];
 const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
 
+#[inline]
 pub fn send_esc() -> Result<(), InputError> {
     let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
     if sent != ESC_INPUTS_LEN {
@@ -82,8 +85,9 @@ pub fn send_esc() -> Result<(), InputError> {
     Ok(())
 }
 
+#[inline]
 pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
-    let inputs = &[
+    let inputs = [
         INPUT {
             r#type: INPUT_KEYBOARD,
             Anonymous: INPUT_0 {
@@ -133,7 +137,7 @@ pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
             },
         }
     ];
-    let sent = unsafe { SendInput(inputs, INPUT_SIZE) };
+    let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
     if sent != inputs.len() as u32 {
         return Err(InputError::SendCtrlFail {
             sent,

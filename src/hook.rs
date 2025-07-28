@@ -36,7 +36,7 @@ use windows::{
 use std::{
     sync::{
         atomic::{
-            Ordering::SeqCst,
+            Ordering::Relaxed,
         },
         mpsc::{
             channel,
@@ -95,6 +95,8 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 
     // l_param is a pointer to a KBDLLHOOKSTRUCT struct
     let kb = unsafe { &*(l_param.0 as *const KBDLLHOOKSTRUCT) };
+
+    // Skip injected events
     if kb.flags.contains(LLKHF_INJECTED) {
         return unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
     }
@@ -109,7 +111,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     };
 
     if vk_code == KEY {
-        KEY_STATE.store(is_key_event_down, SeqCst);
+        KEY_STATE.store(is_key_event_down, Relaxed);
         if let Some(sender) = SENDER.get() {
             let _ = sender.send(KeyAction::KeyHandler(is_key_event_down));
         };
@@ -125,7 +127,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     }
 
     // When f13 key is held, send all key presses to ctrl_handler
-    if KEY_STATE.load(SeqCst) {
+    if KEY_STATE.load(Relaxed) {
         if let Some(sender) = SENDER.get() {
             let _ = sender.send(KeyAction::CtrlHandler(vk_code, is_key_event_down));
         };
