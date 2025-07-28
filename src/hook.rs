@@ -115,7 +115,6 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return LRESULT(1);
     }
 
-    // Ignore shift and alt keys
     match VIRTUAL_KEY(vk_code as u16) {
         VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_MENU | VK_LMENU | VK_RMENU => {
             return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
