@@ -14,7 +14,7 @@ use std::{
     sync::atomic::{AtomicBool, Ordering::Relaxed},
     mem::size_of,
 };
-use crate::error::InputError;
+use crate::error::Errors;
 
 pub const KEY: u32 = 124; // f13
 pub static KEY_STATE: AtomicBool = AtomicBool::new(false);
@@ -74,10 +74,10 @@ static ESC_INPUTS: [INPUT; 2] = [
 const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
 
 #[inline]
-pub fn send_esc() -> Result<(), InputError> {
+pub fn send_esc() -> Result<(), Errors> {
     let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
     if sent != ESC_INPUTS_LEN {
-        return Err(InputError::SendEscFail {
+        return Err(Errors::SendInput {
             sent,
             expected: ESC_INPUTS_LEN
         });
@@ -86,7 +86,7 @@ pub fn send_esc() -> Result<(), InputError> {
 }
 
 #[inline]
-pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
+pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), Errors> {
     let inputs = [
         INPUT {
             r#type: INPUT_KEYBOARD,
@@ -139,7 +139,7 @@ pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), InputError> {
     ];
     let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
     if sent != inputs.len() as u32 {
-        return Err(InputError::SendCtrlFail {
+        return Err(Errors::SendInput {
             sent,
             expected: inputs.len() as u32
         });

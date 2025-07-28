@@ -53,10 +53,7 @@ use crate::{
         ctrl_handler,
         key_handler,
     },
-    error::{
-        HookError,
-        WorkerInitError,
-    }
+    error::Errors
 };
 
 enum KeyAction {
@@ -66,11 +63,11 @@ enum KeyAction {
 
 static SENDER: OnceLock<Sender<KeyAction>> = OnceLock::new();
 
-pub fn init_worker() -> Result<(), WorkerInitError> {
+pub fn init_worker() -> Result<(), Errors> {
     let (sender, receiver) = channel::<KeyAction>();
 
     if SENDER.set(sender).is_err() {
-        return Err(WorkerInitError::SenderAlreadySet);
+        return Err(Errors::WorkerInit);
     }
 
     let thread = thread::Builder::new().name("key-action-thread".to_string());
@@ -83,7 +80,7 @@ pub fn init_worker() -> Result<(), WorkerInitError> {
         }
     }) {
         Ok(_) => Ok(()),
-        Err(_) => Err(WorkerInitError::ThreadFail),
+        Err(_) => Err(Errors::ThreadFail),
     }
 }
 
@@ -137,13 +134,13 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
 }
 
-pub fn start_hook() -> Result<(), HookError> {
+pub fn start_hook() -> Result<(), Errors> {
     {
         // This thread installs the hook
         match unsafe { SetWindowsHookExA(WH_KEYBOARD_LL, Some(hook_proc), None, 0) } {
             Ok(result) => result,
             Err(e) => {
-                return Err(HookError::StartHookFail(e));
+                return Err(Errors::StartHook(e));
             },
         };
     }
