@@ -84,6 +84,13 @@ pub fn init_worker() -> Result<(), Errors> {
     }
 }
 
+const VK_SHIFT_RAW: u16 = 0x10;
+const VK_LSHIFT_RAW: u16 = 0xA0;
+const VK_RSHIFT_RAW: u16 = 0xA1;
+const VK_MENU_RAW: u16 = 0x12;
+const VK_LMENU_RAW: u16 = 0xA4;
+const VK_RMENU_RAW: u16 = 0xA5;
+
 #[unsafe(no_mangle)]
 unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARAM) -> LRESULT {
     if n_code < 0 {
@@ -114,8 +121,8 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return LRESULT(1);
     }
 
-    match VIRTUAL_KEY(vk_code as u16) {
-        VK_SHIFT | VK_LSHIFT | VK_RSHIFT | VK_MENU | VK_LMENU | VK_RMENU => {
+    match vk_code as u16 {
+        VK_SHIFT_RAW | VK_LSHIFT_RAW | VK_RSHIFT_RAW | VK_MENU_RAW | VK_LMENU_RAW | VK_RMENU_RAW => {
             return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
         },
         _ => {}
