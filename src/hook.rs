@@ -21,15 +21,6 @@ use windows::{
                 WM_SYSKEYUP,
                 MSG,
             },
-            Input::KeyboardAndMouse::{
-                VIRTUAL_KEY,
-                VK_SHIFT,
-                VK_LSHIFT,
-                VK_RSHIFT,
-                VK_MENU,
-                VK_LMENU,
-                VK_RMENU,
-            }
         }
     }
 };
