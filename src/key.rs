@@ -11,8 +11,10 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
     VK_LCONTROL,
 };
 use std::{
-    sync::atomic::{AtomicBool, Ordering::Relaxed},
-    mem::size_of,
+    sync::atomic::{
+        AtomicBool,
+        Ordering::Relaxed
+    },
 };
 use crate::error::Errors;
 
@@ -24,25 +26,23 @@ static OTHER_KEY_PRESSED: AtomicBool = AtomicBool::new(false);
 const INPUT_SIZE: i32 = size_of::<INPUT>() as i32;
 
 #[inline]
-pub fn key_handler(is_key_down: bool) {
+pub fn key_handler(is_key_down: bool) -> Result<(), Errors> {
     if is_key_down {
         OTHER_KEY_PRESSED.store(false, Relaxed);
-    } else if !OTHER_KEY_PRESSED.load(Relaxed)
-        && let Err(e) = send_esc() {
-        eprintln!("{e}");
+    } else if !OTHER_KEY_PRESSED.load(Relaxed) {
+        return send_esc()
     }
+    Ok(())
 }
 
 #[inline]
-pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
+pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) -> Result<(), Errors> {
     // Ignore key releases
-    if !is_key_event_down { return }
+    if !is_key_event_down { return Ok(()) }
 
     OTHER_KEY_PRESSED.store(true, Relaxed);
 
-    if let Err(e) = send_ctrl(VIRTUAL_KEY(vk_code as u16)) {
-        eprintln!("{e}");
-    }
+    send_ctrl(VIRTUAL_KEY(vk_code as u16))
 }
 
 static ESC_INPUTS: [INPUT; 2] = [
@@ -77,10 +77,7 @@ const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
 pub fn send_esc() -> Result<(), Errors> {
     let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
     if sent != ESC_INPUTS_LEN {
-        return Err(Errors::SendInput {
-            sent,
-            expected: ESC_INPUTS_LEN
-        });
+        return Err(Errors::SendInput);
     }
     Ok(())
 }
@@ -139,10 +136,7 @@ pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), Errors> {
     ];
     let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
     if sent != inputs.len() as u32 {
-        return Err(Errors::SendInput {
-            sent,
-            expected: inputs.len() as u32
-        });
+        return Err(Errors::SendInput);
     }
     Ok(())
 }

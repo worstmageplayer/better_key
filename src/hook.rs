@@ -61,18 +61,15 @@ pub fn init_worker() -> Result<(), Errors> {
         return Err(Errors::WorkerInit);
     }
 
-    let thread = thread::Builder::new().name("key-action-thread".to_string());
-    match thread.spawn(move || {
+    thread::spawn(move || {
         for action in receiver {
-            match action {
+            let _ = match action {
                 KeyAction::KeyHandler(is_down) => key_handler(is_down),
                 KeyAction::CtrlHandler(vk, is_key_event_down) => ctrl_handler(vk, is_key_event_down),
-            }
+            };
         }
-    }) {
-        Ok(_) => Ok(()),
-        Err(_) => Err(Errors::ThreadFail),
-    }
+    });
+    Ok(())
 }
 
 const VK_SHIFT_RAW: u16 = 0x10;
@@ -134,9 +131,9 @@ pub fn start_hook() -> Result<(), Errors> {
     {
         // This thread installs the hook
         match unsafe { SetWindowsHookExA(WH_KEYBOARD_LL, Some(hook_proc), None, 0) } {
-            Ok(result) => result,
-            Err(e) => {
-                return Err(Errors::StartHook(e));
+            Ok(_) => {},
+            Err(_) => {
+                return Err(Errors::StartHook);
             },
         };
     }
