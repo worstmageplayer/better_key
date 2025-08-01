@@ -128,14 +128,9 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 }
 
 pub fn start_hook() -> Result<(), Errors> {
-    {
-        // This thread installs the hook
-        match unsafe { SetWindowsHookExA(WH_KEYBOARD_LL, Some(hook_proc), None, 0) } {
-            Ok(_) => {},
-            Err(_) => {
-                return Err(Errors::StartHook);
-            },
-        };
+    // This thread installs the hook
+    if unsafe { SetWindowsHookExA(WH_KEYBOARD_LL, Some(hook_proc), None, 0) }.is_err() {
+        return Err(Errors::StartHook);
     }
 
     let mut msg = MSG::default();
