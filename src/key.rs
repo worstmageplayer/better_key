@@ -73,6 +73,7 @@ static ESC_INPUTS: [INPUT; 2] = [
 ];
 const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
 
+/// Returns an Error if number of sent events does not match the expected number of events
 #[inline]
 pub fn send_esc() -> Result<(), Errors> {
     let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
@@ -82,6 +83,7 @@ pub fn send_esc() -> Result<(), Errors> {
     Ok(())
 }
 
+/// Returns an Error if number of sent events does not match the expected number of events
 #[inline]
 pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), Errors> {
     let inputs = [

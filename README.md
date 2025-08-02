@@ -1,9 +1,9 @@
 # Windows Better Key
 ## Features
 - When F13 key is pressed and held:
-    - If another key is pressed, sends `Ctrl + <key>`.
+    - If another key is pressed, sends `Ctrl` + `<key>`.
     - If no other keys are pressed and F13 is released, sends `Esc`.
-- Ignores Shift and Alt keys while F13 is held down. This allows for `F13 + Shift + <key>` and `F13 + Alt + <key>` to be `Ctrl + Shift + <key>` and `Ctrl + Alt + <key>` respectively.
+- Ignores Shift and Alt keys while F13 is held down. This allows for `F13` + `Shift` + `<key>` and `F13` + `Alt` + `<key>` to be `Ctrl` + `Shift` + `<key>` and `Ctrl` + `Alt` + `<key>` respectively.
 - Only key-down events while F13 is held down trigger the `Ctrl` behaviour. All other key events are consumed and ignored.
 
 ## Only works in Windows
