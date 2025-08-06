@@ -24,16 +24,6 @@ use windows::{
         }
     }
 };
-use std::{
-    sync::{
-        mpsc::{
-            channel,
-            Sender,
-        },
-        OnceLock,
-    },
-    thread,
-};
 use crate::{
     key::{
         KEY,
@@ -43,31 +33,6 @@ use crate::{
     },
     error::Errors
 };
-
-enum KeyAction {
-    KeyHandler(bool),
-    CtrlHandler(u32, bool),
-}
-
-static SENDER: OnceLock<Sender<KeyAction>> = OnceLock::new();
-
-pub fn init_worker() -> Result<(), Errors> {
-    let (sender, receiver) = channel::<KeyAction>();
-
-    if SENDER.set(sender).is_err() {
-        return Err(Errors::WorkerInit);
-    }
-
-    thread::spawn(move || {
-        for action in receiver {
-            let _ = match action {
-                KeyAction::KeyHandler(is_down) => key_handler(is_down),
-                KeyAction::CtrlHandler(vk, is_key_event_down) => ctrl_handler(vk, is_key_event_down),
-            };
-        }
-    });
-    Ok(())
-}
 
 const VK_SHIFT_RAW: u16 = 0x10;
 const VK_LSHIFT_RAW: u16 = 0xA0;
@@ -100,9 +65,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 
     if vk_code == KEY {
         unsafe { KEY_STATE = is_key_event_down };
-        if let Some(sender) = SENDER.get() {
-            let _ = sender.send(KeyAction::KeyHandler(is_key_event_down));
-        };
+        let _ = key_handler(is_key_event_down);
         return LRESULT(1);
     }
 
@@ -115,9 +78,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 
     // When f13 key is held, send all key presses to ctrl_handler
     if unsafe { KEY_STATE } {
-        if let Some(sender) = SENDER.get() {
-            let _ = sender.send(KeyAction::CtrlHandler(vk_code, is_key_event_down));
-        };
+        let _ = ctrl_handler(vk_code, is_key_event_down);
         return LRESULT(1);
     }
 
