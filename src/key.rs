@@ -38,39 +38,37 @@ pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) -> Result<(), Errors>
     send_ctrl(VIRTUAL_KEY(vk_code as u16))
 }
 
-static ESC_INPUTS: [INPUT; 2] = [
-    INPUT {
-        r#type: INPUT_KEYBOARD,
-        Anonymous: INPUT_0 {
-            ki: KEYBDINPUT {
-                wVk: VK_ESCAPE,
-                wScan: 0,
-                dwFlags: KEYBD_EVENT_FLAGS(0),
-                time: 0,
-                dwExtraInfo: 0,
-            }
-        },
-    },
-    INPUT {
-        r#type: INPUT_KEYBOARD,
-        Anonymous: INPUT_0 {
-            ki: KEYBDINPUT {
-                wVk: VK_ESCAPE,
-                wScan: 0,
-                dwFlags: KEYEVENTF_KEYUP,
-                time: 0,
-                dwExtraInfo: 0,
-            }
-        },
-    }
-];
-const ESC_INPUTS_LEN: u32 = ESC_INPUTS.len() as u32;
-
 /// Returns an Error if number of sent events does not match the expected number of events
-#[inline]
+//#[inline]
 pub fn send_esc() -> Result<(), Errors> {
-    let sent = unsafe { SendInput(&ESC_INPUTS, INPUT_SIZE) };
-    if sent != ESC_INPUTS_LEN {
+    let inputs = [
+        INPUT {
+            r#type: INPUT_KEYBOARD,
+            Anonymous: INPUT_0 {
+                ki: KEYBDINPUT {
+                    wVk: VK_ESCAPE,
+                    wScan: 0,
+                    dwFlags: KEYBD_EVENT_FLAGS(0),
+                    time: 0,
+                    dwExtraInfo: 0,
+                }
+            },
+        },
+        INPUT {
+            r#type: INPUT_KEYBOARD,
+            Anonymous: INPUT_0 {
+                ki: KEYBDINPUT {
+                    wVk: VK_ESCAPE,
+                    wScan: 0,
+                    dwFlags: KEYEVENTF_KEYUP,
+                    time: 0,
+                    dwExtraInfo: 0,
+                }
+            },
+        }
+    ];
+    let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
+    if sent != inputs.len() as u32 {
         return Err(Errors::SendInput);
     }
     Ok(())
