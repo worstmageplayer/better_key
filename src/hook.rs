@@ -26,9 +26,6 @@ use windows::{
 };
 use std::{
     sync::{
-        atomic::{
-            Ordering::Relaxed,
-        },
         mpsc::{
             channel,
             Sender,
@@ -102,7 +99,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     };
 
     if vk_code == KEY {
-        KEY_STATE.store(is_key_event_down, Relaxed);
+        unsafe { KEY_STATE = is_key_event_down };
         if let Some(sender) = SENDER.get() {
             let _ = sender.send(KeyAction::KeyHandler(is_key_event_down));
         };
@@ -117,7 +114,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
     }
 
     // When f13 key is held, send all key presses to ctrl_handler
-    if KEY_STATE.load(Relaxed) {
+    if unsafe { KEY_STATE } {
         if let Some(sender) = SENDER.get() {
             let _ = sender.send(KeyAction::CtrlHandler(vk_code, is_key_event_down));
         };
