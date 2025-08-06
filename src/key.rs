@@ -68,7 +68,7 @@ pub fn send_esc() -> Result<(), Errors> {
         }
     ];
     let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
-    if sent != 2 {
+    if sent != inputs.len() as u32 {
         return Err(Errors::SendInput);
     }
     Ok(())
@@ -128,7 +128,7 @@ pub fn send_ctrl(virtual_key: VIRTUAL_KEY) -> Result<(), Errors> {
         }
     ];
     let sent = unsafe { SendInput(&inputs, INPUT_SIZE) };
-    if sent != 4 {
+    if sent != inputs.len() as u32 {
         return Err(Errors::SendInput);
     }
     Ok(())
