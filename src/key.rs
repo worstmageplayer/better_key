@@ -39,7 +39,7 @@ pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) -> Result<(), Errors>
 }
 
 /// Returns an Error if number of sent events does not match the expected number of events
-//#[inline]
+#[inline]
 pub fn send_esc() -> Result<(), Errors> {
     let inputs = [
         INPUT {
