@@ -65,7 +65,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
 
     if vk_code == KEY {
         unsafe { KEY_STATE = is_key_event_down };
-        let _ = key_handler(is_key_event_down);
+        key_handler(is_key_event_down);
         return LRESULT(1);
     }
 
@@ -81,7 +81,7 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
             unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
         },
         _ => {
-            let _ = ctrl_handler(vk_code, is_key_event_down);
+            ctrl_handler(vk_code, is_key_event_down);
             LRESULT(1)
         }
     }
