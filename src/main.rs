@@ -4,8 +4,6 @@ mod key;
 mod error;
 mod hook;
 
-use hook::start_hook;
-
 fn main() {
-    let _ = start_hook();
+    let _ = hook::start_hook();
 }
