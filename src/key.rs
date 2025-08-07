@@ -28,7 +28,6 @@ pub fn key_handler(is_key_down: bool) {
 
 #[inline]
 pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
-    // Ignore key releases
     if !is_key_event_down { return }
 
     unsafe { OTHER_KEY_PRESSED = true; }
@@ -36,7 +35,6 @@ pub fn ctrl_handler(vk_code: u32, is_key_event_down: bool) {
     send_ctrl(VIRTUAL_KEY(vk_code as u16))
 }
 
-/// Returns an Error if number of sent events does not match the expected number of events
 #[inline]
 pub fn send_esc() {
     let inputs = [
@@ -68,7 +66,6 @@ pub fn send_esc() {
     unsafe { SendInput(&inputs, INPUT_SIZE) };
 }
 
-/// Returns an Error if number of sent events does not match the expected number of events
 #[inline]
 pub fn send_ctrl(virtual_key: VIRTUAL_KEY) {
     let inputs = [
