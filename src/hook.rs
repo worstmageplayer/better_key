@@ -69,17 +69,19 @@ unsafe extern "system" fn hook_proc(n_code: i32, w_param: WPARAM, l_param: LPARA
         return LRESULT(1);
     }
 
-    match vk_code as u16 {
-        VK_SHIFT_RAW | VK_LSHIFT_RAW | VK_RSHIFT_RAW | VK_MENU_RAW | VK_LMENU_RAW | VK_RMENU_RAW => {
-            return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
-        },
-        _ => {}
-    }
-
     // When f13 key is held, send all key presses to ctrl_handler
     if unsafe { KEY_STATE } {
-        let _ = ctrl_handler(vk_code, is_key_event_down);
-        return LRESULT(1);
+        // Ignore modifier keys
+        // LSHIFT, RSHIFT, LMENU, RMENU are removed when compiled
+        match vk_code as u16 {
+            VK_SHIFT_RAW | VK_LSHIFT_RAW | VK_RSHIFT_RAW | VK_MENU_RAW | VK_LMENU_RAW | VK_RMENU_RAW => {
+                return unsafe { CallNextHookEx(None, n_code, w_param, l_param) };
+            },
+            _ => {
+                let _ = ctrl_handler(vk_code, is_key_event_down);
+                return LRESULT(1);
+            }
+        }
     }
 
     unsafe { CallNextHookEx(None, n_code, w_param, l_param) }
